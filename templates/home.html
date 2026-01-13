@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CoreConnect</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}" />
+</head>
+<body>
+
+  <div class="header">
+    <h1>CoreConnect</h1>
+    <p>Your personal fitness companion</p>
+  </div>
+
+  <div class="main-container" style="justify-content: center;">
+    <div class="form-side" style="width: 100%; max-width: 400px;">
+      <h2>Get Started</h2>
+
+      <div class="home-actions">
+        <a href="{{ url_for('register') }}">
+          <button>Create Account</button>
+        </a>
+
+        <a href="{{ url_for('login') }}">
+          <button class="secondary">Login</button>
+        </a>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

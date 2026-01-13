@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CoreConnect Register</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}" />
+</head>
+<body>
+  <div class="header">
+    <h1>CoreConnect</h1>
+    <p>Your personal fitness companion</p>
+  </div>
+
+  <div class="main-container">
+    <div class="image-side">
+      <img
+        src="https://e7.pngegg.com/pngimages/888/817/png-clipart-exercise-emoji-physical-fitness-weight-training-olympic-weightlifting-weightlifting-hand-sport.png"
+        alt="Fitness"
+      >
+    </div>
+
+    <div class="form-side">
+      <h2>Create an Account</h2>
+
+      <form action="{{ url_for('register') }}" method="POST" id="registerForm">
+        <input
+          type="text"
+          id="username"
+          name="username"
+          placeholder="Username"
+          required
+        />
+
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="Email"
+          required
+        />
+
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="Password"
+          required
+        />
+
+        <button type="submit">Create Account</button>
+
+        <div id="errorMsg">
+          {% with messages = get_flashed_messages(category_filter=["danger"]) %}
+            {% if messages %}
+              {{ messages[0] }}
+            {% endif %}
+          {% endwith %}
+        </div>
+      </form>
+
+      <p style="margin-top: 15px; font-size: 0.9em;">
+        Already have an account?
+        <a href="{{ url_for('login') }}">Log in</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>
