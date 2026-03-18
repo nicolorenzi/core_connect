@@ -57,5 +57,6 @@ class Exercise(Base):
             "name": self.name,
             "repetitions": self.repetitions,
             "weight": self.weight,
-            "set_label": self.set_label
+            "set_label": self.set_label,
+            "stored_exercise_id": self.stored_exercise_id
         }
