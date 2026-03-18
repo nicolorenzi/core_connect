@@ -293,7 +293,7 @@ def dashboard():
         calorie_calculator_reference=url_for("calculator"),
         workout_tracker_reference=url_for("workout"),
         nutrition_tracker_reference=url_for("nutrition_tracker"),
-        progress_tracker_reference=url_for("progress_tracker"),
+        workout_logs_reference=url_for("workout_logs"),
     )
 
 
@@ -389,11 +389,11 @@ def workout():
     )
 
 
-@app.route("/progress-tracker", methods=["GET"])
+@app.route("/workout-logs", methods=["GET"])
 @login_required
 @nocache
-def progress_tracker():
-    return render_template("progress-tracker.html")
+def workout_logs():
+    return render_template("workout-logs.html")
 
 
 @app.route("/api/workouts", methods=["GET"])

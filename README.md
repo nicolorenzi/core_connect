@@ -15,7 +15,7 @@ CoreConnect is a comprehensive fitness application designed to help users monito
 - **Caloric Calculator**: Track daily caloric intake goals for each body type.
 - **Workout Tracker**: Log workouts with details like type, duration, and calories burned.
 - **Nutrition Tracker**: Record meals and snacks to monitor calorie consumption.
-- **Progress Tracker**: View graphs and statistics to track progress over time.
+- **Workout Logs**: View day-to-day logs to track workouts over time.
 
 ---
 

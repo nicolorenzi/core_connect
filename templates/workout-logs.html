@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CoreConnect Progress Tracker</title>
+  <title>CoreConnect Workout Logs</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
 </head>
@@ -15,8 +15,8 @@
 
       <div class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
         <div class="space-y-1">
-          <p class="text-xs font-semibold uppercase tracking-[0.6em] text-slate-400">Progress</p>
-          <h1 class="text-2xl font-semibold text-white sm:text-3xl">Progress Tracker</h1>
+          <p class="text-xs font-semibold uppercase tracking-[0.6em] text-slate-400">Workout</p>
+          <h1 class="text-2xl font-semibold text-white sm:text-3xl">Workout Logs</h1>
           <p class="text-sm text-slate-300">Review your logged sessions in one elegant timeline.</p>
         </div>
         <a href="{{ url_for('dashboard') }}"
