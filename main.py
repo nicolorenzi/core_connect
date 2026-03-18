@@ -5,7 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from models.base import Base
 from models.user_model import User
-from models.workout_model import Workout, Exercise
+from models.workout_model import Workout, Exercise, StoredExercise, workout_exercise_table
 from models.meal_model import Meal, Food
 from dotenv import load_dotenv
 import os
@@ -26,6 +26,7 @@ PASSWORD_REQUIREMENTS = (
     "Passwords must be 8-64 characters long, include at least one uppercase letter, "
     "one lowercase letter, and one special character."
 )
+SET_LABEL_PATTERN = re.compile(r"^(?:W|[1-9][0-9]*)$")
 
 def ensure_users_email_column():
     inspector = inspect(engine)
@@ -73,6 +74,57 @@ def ensure_workout_user_column():
     with engine.begin() as conn:
         conn.execute(text('ALTER TABLE "Workouts" ADD COLUMN user_id INTEGER'))
 
+
+def ensure_exercise_columns():
+    inspector = inspect(engine)
+    if "Exercises" not in inspector.get_table_names():
+        return
+
+    stored_table_names = inspector.get_table_names()
+    if "StoredExercises" not in stored_table_names:
+        StoredExercise.__table__.create(bind=engine, checkfirst=True)
+
+    inspector = inspect(engine)
+    existing_columns = {col["name"] for col in inspector.get_columns("Exercises")}
+
+    with engine.begin() as conn:
+        if "intensity" in existing_columns:
+            conn.execute(text('ALTER TABLE "Exercises" RENAME TO "Exercises_old"'))
+            conn.execute(text(
+                'CREATE TABLE "Exercises" ('
+                'id INTEGER PRIMARY KEY AUTOINCREMENT, '
+                'name VARCHAR NOT NULL, '
+                'repetitions INTEGER NOT NULL, '
+                'weight FLOAT NOT NULL, '
+                'set_label VARCHAR NOT NULL DEFAULT \'1\', '
+                'stored_exercise_id INTEGER, '
+                'FOREIGN KEY(stored_exercise_id) REFERENCES "StoredExercises"(id)'
+                ')'
+            ))
+
+            select_parts = ['id', 'name', 'repetitions', 'weight']
+            if "set_label" in existing_columns:
+                select_parts.append('set_label')
+            else:
+                select_parts.append("'1'")
+            if "stored_exercise_id" in existing_columns:
+                select_parts.append('stored_exercise_id')
+            else:
+                select_parts.append('NULL')
+
+            conn.execute(text(
+                f'INSERT INTO "Exercises" (id, name, repetitions, weight, set_label, stored_exercise_id) '
+                f'SELECT {", ".join(select_parts)} FROM "Exercises_old"'
+            ))
+            conn.execute(text('DROP TABLE "Exercises_old"'))
+            existing_columns.discard("intensity")
+            existing_columns.update({"set_label", "stored_exercise_id"})
+
+        if "set_label" not in existing_columns:
+            conn.execute(text('ALTER TABLE "Exercises" ADD COLUMN set_label VARCHAR DEFAULT \'1\''))
+        if "stored_exercise_id" not in existing_columns:
+            conn.execute(text('ALTER TABLE "Exercises" ADD COLUMN stored_exercise_id INTEGER'))
+
 Session = sessionmaker(bind=engine)
 db = Session()
 
@@ -111,7 +163,24 @@ def is_strong_password(password):
         return False
     return True
 
+
+def normalize_exercise_name(value):
+    if not value:
+        return ""
+    normalized_words = [word.capitalize() for word in value.strip().split() if word]
+    return " ".join(normalized_words)
+
+
+def normalize_set_label(value):
+    candidate = (value or "").strip().upper()
+    if not candidate:
+        return "1"
+    if SET_LABEL_PATTERN.fullmatch(candidate):
+        return candidate
+    return None
+
 ensure_workout_user_column()
+ensure_exercise_columns()
 seed_default_users()
 
 
@@ -248,17 +317,54 @@ def nutrition_tracker():
 def workout():
     user_id = current_user_id()
 
+    stored_exercises = (
+        db.query(StoredExercise)
+        .filter_by(user_id=user_id)
+        .order_by(StoredExercise.name)
+        .all()
+    )
+
     if request.method == "POST":
-        exercise_name = request.form["exercise"]
-        reps = request.form["repetitions"]
-        exercise_weight = request.form["weight"]
-        intensity_level = request.form["intensity"]
+        exercise_name = request.form.get("exercise", "")
+        repetitions_value = request.form.get("repetitions", "")
+        weight_value = request.form.get("weight", "")
+        set_label_value = request.form.get("set_label", "")
+
+        normalized_name = normalize_exercise_name(exercise_name)
+        set_label = normalize_set_label(set_label_value)
+
+        if not normalized_name:
+            flash("Exercise name cannot be empty.", "danger")
+            return redirect(url_for("workout"))
+
+        if set_label is None:
+            flash("Set must be a number or W for warmup.", "danger")
+            return redirect(url_for("workout"))
+
+        try:
+            repetitions = int(repetitions_value)
+            weight = float(weight_value)
+        except ValueError:
+            flash("Reps must be an integer and weight must be a number.", "danger")
+            return redirect(url_for("workout"))
+
+        stored_exercise = (
+            db.query(StoredExercise)
+            .filter_by(user_id=user_id, name=normalized_name)
+            .first()
+        )
+
+        if not stored_exercise:
+            stored_exercise = StoredExercise(user_id=user_id, name=normalized_name)
+            db.add(stored_exercise)
+            db.flush()
 
         exercise = Exercise(
-            name=exercise_name,
-            repetitions=reps,
-            weight=exercise_weight,
-            intensity=intensity_level
+            name=normalized_name,
+            repetitions=repetitions,
+            weight=weight,
+            set_label=set_label,
+            stored_exercise_id=stored_exercise.id,
         )
 
         date = datetime.date.today()
@@ -272,11 +378,15 @@ def workout():
         try:
             db.commit()
             return redirect(url_for("dashboard"))
-        except Exception as e:
+        except Exception as exc:
             db.rollback()
+            app.logger.exception("Failed to log workout")
             return "There was an issue adding your workout", 500
 
-    return render_template("workout-tracker.html")
+    return render_template(
+        "workout-tracker.html",
+        stored_exercises=[se.name for se in stored_exercises],
+    )
 
 
 @app.route("/progress-tracker", methods=["GET"])
@@ -297,6 +407,31 @@ def get_workouts():
         .all()
     )
     return jsonify([w.to_dict() for w in workouts])
+
+
+@app.route("/api/exercises/<int:exercise_id>", methods=["DELETE"])
+@login_required
+def delete_exercise(exercise_id):
+    user_id = current_user_id()
+    exercise = (
+        db.query(Exercise)
+        .join(workout_exercise_table)
+        .join(Workout)
+        .filter(Exercise.id == exercise_id, Workout.user_id == user_id)
+        .first()
+    )
+    if not exercise:
+        return jsonify({"error": "Exercise not found."}), 404
+
+    exercise.workouts = []
+    db.delete(exercise)
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        return jsonify({"error": "Failed to remove exercise."}), 500
+
+    return jsonify({"success": True})
 
 
 if __name__ == "__main__":

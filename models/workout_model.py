@@ -1,4 +1,4 @@
-from sqlalchemy import Table, Column, String, Integer, Date, Float, ForeignKey
+from sqlalchemy import Table, Column, String, Integer, Date, Float, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import declarative_base, relationship
 from models.base import Base
 import datetime
@@ -26,6 +26,18 @@ class Workout(Base):
             "exercises": [exercise.to_dict() for exercise in self.exercises]
         }
 
+
+class StoredExercise(Base):
+    __tablename__ = 'StoredExercises'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('Users.id'), nullable=False)
+    name = Column(String, nullable=False)
+
+    __table_args__ = (UniqueConstraint('user_id', 'name', name='uq_stored_exercise_user_name'),)
+
+    logs = relationship('Exercise', back_populates='stored_exercise')
+
 class Exercise(Base):
     __tablename__ = 'Exercises'
 
@@ -33,9 +45,11 @@ class Exercise(Base):
     name = Column(String, nullable=False)
     repetitions = Column(Integer, nullable=False)
     weight = Column(Float, nullable=False)
-    intensity = Column(String, nullable=False)
+    set_label = Column(String, nullable=False, default='1')
+    stored_exercise_id = Column(Integer, ForeignKey('StoredExercises.id'), nullable=True)
 
     workouts = relationship('Workout', secondary=workout_exercise_table, back_populates='exercises')
+    stored_exercise = relationship('StoredExercise', back_populates='logs')
 
     def to_dict(self):
         return {
@@ -43,5 +57,5 @@ class Exercise(Base):
             "name": self.name,
             "repetitions": self.repetitions,
             "weight": self.weight,
-            "intensity": self.intensity
+            "set_label": self.set_label
         }

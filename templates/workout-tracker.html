@@ -23,7 +23,12 @@
         <form class="space-y-5 rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 p-6 shadow-2xl shadow-black/40" method="POST">
           <label class="space-y-2 text-sm">
             <span class="text-slate-300">Exercise name</span>
-            <input name="exercise" id="exercise" type="text" required placeholder="e.g. Barbell squat" class="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30" />
+            <input list="exerciseOptions" name="exercise" id="exercise" type="text" required placeholder="e.g. Barbell squat" class="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30" />
+            <datalist id="exerciseOptions">
+              {% for option in stored_exercises %}
+                <option value="{{ option }}"></option>
+              {% endfor %}
+            </datalist>
           </label>
           <div class="grid gap-4 md:grid-cols-2">
             <label class="space-y-2 text-sm">
@@ -36,21 +41,18 @@
             </label>
           </div>
           <label class="space-y-2 text-sm">
-            <span class="text-slate-300">Intensity</span>
-            <select name="intensity" id="intensity" required class="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30">
-              <option value="low">Low</option>
-              <option value="moderate">Moderate</option>
-              <option value="high">High</option>
-            </select>
+            <span class="text-slate-300">Set #</span>
+            <input name="set_label" id="set_label" type="text" pattern="^(?:[Ww]|[1-9][0-9]*)$" class="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30" />
+            <p class="text-xs text-slate-400">Use <span class="font-semibold text-white">W</span> for warmup, digits for working sets.</p>
           </label>
           <button type="submit" class="w-full rounded-2xl bg-gradient-to-r from-primary to-[#07619e] px-4 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:opacity-95">Log Workout</button>
         </form>
         <div class="flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/40 backdrop-blur">
-          <h2 class="text-lg font-semibold text-white">Intensity Guide</h2>
+          <h2 class="text-lg font-semibold text-white">Set guidance</h2>
           <div class="space-y-3 text-sm text-slate-200">
-            <p><span class="font-semibold text-white">Low</span> — Easy effort; conversation is effortless.</p>
-            <p><span class="font-semibold text-white">Moderate</span> — Noticeable effort; can speak but not sing.</p>
-            <p><span class="font-semibold text-white">High</span> — Hard effort; speech is broken.</p>
+            <p><span class="font-semibold text-white">W</span> — Warmup set. Use this when you are ramping up before your working sets.</p>
+            <p><span class="font-semibold text-white">1, 2, 3...</span> — Working sets. Enter whichever numbered set you are logging.</p>
+            <p>Exercise names are normalized and remembered in this dropdown so you can pick them quickly next time.</p>
           </div>
         </div>
       </div>
