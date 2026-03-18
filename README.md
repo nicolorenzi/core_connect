@@ -54,7 +54,7 @@ CoreConnect is a comprehensive fitness application designed to help users monito
 
 6. **Run the app:**
    ```bash
-   python main.py
+   make dev
    ```
 
 7. **Open your browser and navigate to:**
