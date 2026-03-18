@@ -3,9 +3,6 @@ primary_region = 'ord'
 
 [build]
 
-[processes]
-  app = "gunicorn main:app --bind 0.0.0.0:8080"
-
 [http_service]
   internal_port = 8080
   force_https = true
