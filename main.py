@@ -429,7 +429,50 @@ def progress_tracker_exercise_detail(stored_exercise_id):
         flash("Exercise not found.", "warning")
         return redirect(url_for("progress_tracker"))
 
-    return render_template("progress-tracker-detail.html", exercise=exercise)
+    daily_max_1rm = {}
+    strongest_set = None
+    heaviest_set = None
+    for log in exercise.logs:
+        if not log.workouts:
+            continue
+        workout = log.workouts[0]
+        if workout.user_id != user_id:
+            continue
+        date_key = workout.date.isoformat()
+        reps = log.repetitions or 0
+        weight = log.weight or 0.0
+        one_rm = weight * (1 + reps / 30)
+        existing = daily_max_1rm.get(date_key)
+        if existing is None or one_rm > existing:
+            daily_max_1rm[date_key] = one_rm
+
+        if strongest_set is None or one_rm > strongest_set["one_rm"]:
+            strongest_set = {
+                "date": date_key,
+                "weight": weight,
+                "reps": reps,
+                "one_rm": round(one_rm, 2),
+            }
+
+        if heaviest_set is None or weight > heaviest_set["weight"]:
+            heaviest_set = {
+                "date": date_key,
+                "weight": weight,
+                "reps": reps,
+            }
+
+    chart_data = [
+        {"date": date, "one_rm": round(value, 2)}
+        for date, value in sorted(daily_max_1rm.items())
+    ]
+
+    return render_template(
+        "progress-tracker-detail.html",
+        exercise=exercise,
+        chart_data=chart_data,
+        strongest_set=strongest_set,
+        heaviest_set=heaviest_set,
+    )
 
 
 @app.route("/api/workouts", methods=["GET"])

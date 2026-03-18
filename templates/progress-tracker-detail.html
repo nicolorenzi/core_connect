@@ -25,17 +25,108 @@
 
         <section class="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/40 space-y-4">
           <div class="space-y-1">
-            <p class="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">Stored logs</p>
-            <h2 class="text-lg font-semibold text-white">Exercise summary</h2>
+            <p class="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">One-Rep Max</p>
+            <h2 class="text-lg font-semibold text-white">Daily High 1RM</h2>
+          </div>
+          <div class="stat-grid">
+            <div class="stat-card">
+              <p class="stat-label">Strongest set</p>
+              {% if strongest_set %}
+              <p class="stat-value">{{ strongest_set.weight | round(0) | int }} lbs × {{ strongest_set.reps }} reps</p>
+              <p class="stat-note">{{ strongest_set.date }}</p>
+              {% else %}
+              <p class="stat-note">Log a set to capture the highest projected 1RM.</p>
+              {% endif %}
+            </div>
+            <div class="stat-card">
+              <p class="stat-label">Heaviest set</p>
+              {% if heaviest_set %}
+              <p class="stat-value">{{ heaviest_set.weight | round(0) | int }} lbs × {{ heaviest_set.reps }} reps</p>
+              <p class="stat-note">{{ heaviest_set.date }}</p>
+              {% else %}
+              <p class="stat-note">Log a set to track your heaviest effort.</p>
+              {% endif %}
+            </div>
+          </div>
+          {% if chart_data %}
+          <div class="chart-wrapper">
+            <canvas id="oneRmChart"></canvas>
+          </div>
+          {% else %}
+          <p class="text-sm text-slate-300">
+            Log at least one set to populate the chart with this exercise’s daily 1RM peaks.
+          </p>
+          {% endif %}
+        </section>
+        <section class="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/40 space-y-4">
+          <div class="space-y-1">
+            <p class="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">What’s this?</p>
+            <h2 class="text-lg font-semibold text-white">How 1RM is calculated</h2>
           </div>
           <p class="text-sm text-slate-300">
-            {{ exercise.logs | length }} stored session{{ "s" if exercise.logs | length != 1 else "" }} linked to this exercise.
+            1RM (one-repetition max) projects the heaviest single-rep effort for a given exercise.
+            Each set estimates its own 1RM using <span class="font-semibold text-white">weight × (1 + reps / 30)</span>, and
+            the chart highlights the largest estimate recorded on each training day.
           </p>
           <p class="text-sm text-slate-400">
-            Detailed history, progression trends, and analytics will land here soon—hold tight.
+            Tracking the daily high 1RM helps you see how your peak strength evolves over time.
           </p>
         </section>
       </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      const chartData = {{ chart_data | tojson }};
+      if (chartData.length > 0) {
+        const ctx = document.getElementById("oneRmChart").getContext("2d");
+        new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: chartData.map(entry => entry.date),
+            datasets: [
+              {
+                label: "Daily 1RM (lbs)",
+                data: chartData.map(entry => entry.one_rm),
+                backgroundColor: "rgba(14, 165, 233, 0.2)",
+                borderColor: "rgba(14, 165, 233, 0.9)",
+                pointBackgroundColor: "rgba(59, 130, 246, 1)",
+                pointBorderColor: "rgba(14, 165, 233, 1)",
+                borderWidth: 2,
+                fill: true,
+                tension: 0.25,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                grid: { color: "rgba(148, 163, 184, 0.2)" },
+                ticks: { color: "#cbd5f5" },
+              },
+              y: {
+                grid: { color: "rgba(148, 163, 184, 0.2)" },
+                ticks: {
+                  color: "#cbd5f5",
+                  callback: value => `${value} lbs`,
+                },
+                beginAtZero: true,
+              },
+            },
+            plugins: {
+              legend: {
+                labels: { color: "#cbd5f5" },
+              },
+              tooltip: {
+                callbacks: {
+                  label: context => `${context.formattedValue} lbs`,
+                },
+              },
+            },
+          },
+        });
+      }
+    </script>
   </body>
 </html>
