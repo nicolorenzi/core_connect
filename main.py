@@ -294,6 +294,7 @@ def dashboard():
         workout_tracker_reference=url_for("workout"),
         nutrition_tracker_reference=url_for("nutrition_tracker"),
         workout_logs_reference=url_for("workout_logs"),
+        progress_tracker_reference=url_for("progress_tracker"),
     )
 
 
@@ -394,6 +395,41 @@ def workout():
 @nocache
 def workout_logs():
     return render_template("workout-logs.html")
+
+
+@app.route("/progress-tracker", methods=["GET"])
+@login_required
+@nocache
+def progress_tracker():
+    user_id = current_user_id()
+
+    exercises = (
+        db.query(StoredExercise)
+        .filter_by(user_id=user_id)
+        .order_by(StoredExercise.name)
+        .all()
+    )
+
+    return render_template("progress-tracker.html", exercises=exercises)
+
+
+@app.route("/progress-tracker/exercise/<int:stored_exercise_id>", methods=["GET"])
+@login_required
+@nocache
+def progress_tracker_exercise_detail(stored_exercise_id):
+    user_id = current_user_id()
+
+    exercise = (
+        db.query(StoredExercise)
+        .filter_by(id=stored_exercise_id, user_id=user_id)
+        .first()
+    )
+
+    if not exercise:
+        flash("Exercise not found.", "warning")
+        return redirect(url_for("progress_tracker"))
+
+    return render_template("progress-tracker-detail.html", exercise=exercise)
 
 
 @app.route("/api/workouts", methods=["GET"])

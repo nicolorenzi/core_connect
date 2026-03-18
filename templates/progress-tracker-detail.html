@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ exercise.name }} · Progress Detail</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/progress-tracker.css') }}" />
+  </head>
+  <body class="min-h-screen bg-slate-950 text-white">
+    <div class="min-h-screen bg-slate-900/40">
+      <div class="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
+        <div class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div class="space-y-1">
+            <p class="text-xs font-semibold uppercase tracking-[0.6em] text-slate-400">Exercise</p>
+            <h1 class="text-2xl font-semibold text-white sm:text-3xl">{{ exercise.name }}</h1>
+            <p class="text-sm text-slate-300">A quick glance at how often you’ve logged this exercise.</p>
+          </div>
+          <a href="{{ url_for('progress_tracker') }}"
+            class="w-full rounded-full border border-white/30 px-4 py-2 text-center text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-white/10 md:w-auto">
+            Back to Tracker
+          </a>
+        </div>
+
+        <section class="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/40 space-y-4">
+          <div class="space-y-1">
+            <p class="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">Stored logs</p>
+            <h2 class="text-lg font-semibold text-white">Exercise summary</h2>
+          </div>
+          <p class="text-sm text-slate-300">
+            {{ exercise.logs | length }} stored session{{ "s" if exercise.logs | length != 1 else "" }} linked to this exercise.
+          </p>
+          <p class="text-sm text-slate-400">
+            Detailed history, progression trends, and analytics will land here soon—hold tight.
+          </p>
+        </section>
+      </div>
+    </div>
+  </body>
+</html>
