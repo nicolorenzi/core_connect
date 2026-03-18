@@ -19,7 +19,12 @@ app.secret_key = os.getenv("SECRET_KEY")
 DEFAULT_EMAILS = os.getenv("DEFAULT_EMAILS", "").split(",")
 DEFAULT_PASSWORD = os.getenv("DEFAULT_PASSWORD")
 
-engine = create_engine("sqlite:///users.db", echo=True)
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///users.db")
+
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+engine = create_engine(DATABASE_URL, echo=True)
 
 EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 PASSWORD_REQUIREMENTS = (
