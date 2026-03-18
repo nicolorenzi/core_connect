@@ -1,80 +1,71 @@
-# Core Connect 
+# Core Connect
 CoreConnect is a comprehensive fitness application designed to help users monitor their caloric intake, track workouts, and achieve their health goals efficiently, keeping the user motivated and consistent.
 
 ---
 
-##  Table of Contents
+## Table of Contents
 - [Features](#features)
 - [Installation](#installation)
 - [Technologies Used](#technologies-used)
-- [Contributing](#contributing)
 
 ---
 
-##  Features
+## Features
 
-- **Caloric Calculator*: Track daily caloric intake goals for each body type.
+- **Caloric Calculator**: Track daily caloric intake goals for each body type.
 - **Workout Tracker**: Log workouts with details like type, duration, and calories burned.
 - **Nutrition Tracker**: Record meals and snacks to monitor calorie consumption.
 - **Progress Tracker**: View graphs and statistics to track progress over time.
 
 ---
 
-##  Installation
+## Installation
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/zogerreng/1530-Fitness-App.git
-   cd 1530-Fitness-App
+   git clone https://github.com/nicolorenzi/core_connect.git
+   cd core_connect
+   ```
 
-2. **Create a virtual environment (needs to be done only once):**
+2. **Create a virtual environment (only needed once):**
    ```bash
    python -m venv venv
+   ```
 
-3. **Activate virtual environment:**
+3. **Activate the virtual environment:**
    ```bash
-   In Mac OS:      source venv/bin/activate
-   In Windows:     .\venv\Scripts\activate 
+   # Mac/Linux:
+   source venv/bin/activate
+   # Windows:
+   .\venv\Scripts\activate
+   ```
 
 4. **Install dependencies:**
    ```bash
    pip install -r requirements.txt
-   
-3. **Run the App:**
+   ```
+
+5. **Create a `.env` file in the project root with the following:**
+   ```
+   SECRET_KEY=your-long-random-secret-key
+   DEFAULT_EMAILS=you@example.com
+   DEFAULT_PASSWORD=YourPassword123#
+   ```
+
+6. **Run the app:**
    ```bash
    python main.py
+   ```
 
-4. **Copy and paste the link they give into a browser:**
-   ```bash
-   ex. http://127.0.0.1:5000
+7. **Open your browser and navigate to:**
+   ```
+   http://127.0.0.1:5000
+   ```
 
-5. To login, use any of these usernames with the password "pass":
-   - nico
-   - devansh
-   - roger
-   - michael
-   - maggie
+---
 
-##  Technologies Used
-   - Frontend: HTML, CSS, JavaScript
-   
-   - Backend: Flask (Python)
-   
-   - Database: SQLite
+## Technologies Used
 
-## Contributing 
-Pull requests are welcome! To contribute:
-
-   - Fork the repository
-
-   - Create a new branch
-
-   - Make your changes
-
-   - Submit a pull request
-
-## Testing 
-   - Run App from terminal
-   - on a different terminal envoke selinium web testing by
-   ```bash
-      python -m unittest tests/test_calorie_calculator.py
+- **Frontend:** HTML, CSS, JavaScript, Tailwind CSS
+- **Backend:** Flask (Python)
+- **Database:** SQLite
