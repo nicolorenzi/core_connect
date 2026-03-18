@@ -12,10 +12,12 @@ CoreConnect is a comprehensive fitness application designed to help users monito
 
 ## Features
 
+- **User Authentication**: Email + password login/register with strong password validation.
 - **Caloric Calculator**: Track daily caloric intake goals for each body type.
-- **Workout Tracker**: Log workouts with details like type, duration, and calories burned.
+- **Workout Tracker**: Log workouts with exercise name normalization and set labels (including warmup sets).
 - **Nutrition Tracker**: Record meals and snacks to monitor calorie consumption.
 - **Workout Logs**: View day-to-day logs to track workouts over time.
+- **Progress Tracker**: View exercise performance history, 1RM trends, strongest and heaviest sets.
 
 ---
 
@@ -69,3 +71,19 @@ CoreConnect is a comprehensive fitness application designed to help users monito
 - **Frontend:** HTML, CSS, JavaScript, Tailwind CSS
 - **Backend:** Flask (Python)
 - **Database:** SQLite
+
+---
+
+## API Endpoints
+
+- `GET /api/workouts` - list authenticated user workouts
+- `DELETE /api/exercises/<int:exercise_id>` - delete an exercise by id
+
+---
+
+## Latest Changes
+
+- Added secure `register` + `login` flows with session support.
+- Added database schema migrations auto-applying for existing installs (users, workouts, exercises).
+- Added `progress-tracker` views with 1RM calculations.
+- Added exercise auto-normalization and stored exercise library.
