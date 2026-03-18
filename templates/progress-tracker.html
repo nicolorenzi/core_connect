@@ -1,78 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CoreConnect Progress Tracker</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: { primary: '#0f3d5f' },
-        },
-      },
-    };
-  </script>
 </head>
+
 <body class="min-h-screen bg-slate-950 text-white">
   <div class="min-h-screen bg-slate-900/40">
     <div class="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-      <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <div>
+
+      <div class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+        <div class="space-y-1">
           <p class="text-xs font-semibold uppercase tracking-[0.6em] text-slate-400">Progress</p>
-          <h1 class="text-3xl font-semibold text-white">Progress Tracker</h1>
+          <h1 class="text-2xl font-semibold text-white sm:text-3xl">Progress Tracker</h1>
           <p class="text-sm text-slate-300">Review your logged sessions in one elegant timeline.</p>
         </div>
-        <a href="{{ url_for('dashboard') }}" class="rounded-full border border-white/30 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-white/10">Back to Dashboard</a>
+        <a href="{{ url_for('dashboard') }}"
+          class="w-full rounded-full border border-white/30 px-4 py-2 text-center text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-white/10 md:w-auto">Back
+          to Dashboard</a>
       </div>
+
+      <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+        <button id="prevDay" class="rounded-full p-2 text-slate-300 transition hover:bg-white/10 hover:text-white">
+          &#8592;
+        </button>
+        <span id="currentDateLabel" class="text-sm font-semibold text-white"></span>
+        <button id="nextDay" class="rounded-full p-2 text-slate-300 transition hover:bg-white/10 hover:text-white">
+          &#8594;
+        </button>
+      </div>
+
       <div id="workoutList" class="space-y-4"></div>
+
     </div>
   </div>
+
   <script>
+    const monthFormatter = new Intl.DateTimeFormat('en-US', { month: 'long' });
+
+    const getOrdinal = day => {
+      if (day % 100 >= 11 && day % 100 <= 13) return 'th';
+      return day % 10 === 1 ? 'st' : day % 10 === 2 ? 'nd' : day % 10 === 3 ? 'rd' : 'th';
+    };
+
+    const formatDate = isoDate => {
+      const [year, month, day] = isoDate.split('-').map(Number);
+      const parsed = new Date(year, month - 1, day);
+      if (Number.isNaN(parsed.getTime())) return isoDate;
+      return `${monthFormatter.format(parsed)} ${day}${getOrdinal(day)}, ${year}`;
+    };
+
+    const toIso = date => {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    };
+
+    const intensityColor = level => {
+      if (level === 'low') return 'text-green-400';
+      if (level === 'moderate') return 'text-yellow-400';
+      if (level === 'high') return 'text-red-400';
+      return 'text-slate-300';
+    };
+
+    let allWorkouts = [];
+    let currentDate = new Date();
+
+    const renderDay = () => {
+      const isoToday = toIso(currentDate);
+      document.getElementById('currentDateLabel').textContent = formatDate(isoToday);
+
+      const container = document.getElementById('workoutList');
+      container.innerHTML = '';
+
+      const workout = allWorkouts.find(w => w.date === isoToday);
+
+      if (!workout || workout.exercises.length === 0) {
+        container.innerHTML = `
+          <div class="rounded-3xl border border-white/10 bg-white/5 p-6 text-center text-sm text-slate-400">
+            No workout logged for this day.
+          </div>`;
+        return;
+      }
+
+      const card = document.createElement('div');
+      card.className = 'rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 p-6 shadow-2xl shadow-black/40 space-y-4';
+
+      const count = document.createElement('p');
+      count.className = 'text-xs font-semibold uppercase tracking-widest text-slate-400';
+      count.textContent = `${workout.exercises.length} exercise${workout.exercises.length !== 1 ? 's' : ''}`;
+      card.appendChild(count);
+
+      workout.exercises.forEach((exercise, index) => {
+        const row = document.createElement('div');
+        row.className = 'flex items-start justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 p-6';
+        
+        row.innerHTML = `
+          <div class="flex items-center gap-4">
+            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white">${index + 1}</span>
+            <div>
+              <p class="text-sm font-semibold text-white break-words">${exercise.name}</p>
+              <p class="text-xs text-slate-400 mt-0.5">${exercise.repetitions} reps &middot; ${exercise.weight} lbs</p>
+            </div>
+          </div>
+          <span class="shrink-0 text-xs font-semibold capitalize ${intensityColor(exercise.intensity)}">${exercise.intensity}</span>
+        `;
+
+        card.appendChild(row);
+      });
+
+      container.appendChild(card);
+    };
+
+    document.getElementById('prevDay').addEventListener('click', () => {
+      currentDate.setDate(currentDate.getDate() - 1);
+      renderDay();
+    });
+
+    document.getElementById('nextDay').addEventListener('click', () => {
+      currentDate.setDate(currentDate.getDate() + 1);
+      renderDay();
+    });
+
     fetch('/api/workouts')
-      .then(response => response.json())
+      .then(r => r.json())
       .then(data => {
-        const container = document.getElementById('workoutList');
-        container.innerHTML = '';
-
-        if (data.length === 0) {
-          container.innerHTML = '<div class="rounded-3xl border border-white/10 bg-white/5 p-6 text-center text-sm text-slate-300">No workouts logged yet.</div>';
-          return;
-        }
-
-        data.forEach(workout => {
-          const workoutCard = document.createElement('div');
-          workoutCard.className = 'rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 p-6 shadow-2xl shadow-black/40';
-
-          const dateHeading = document.createElement('p');
-          dateHeading.className = 'text-sm text-slate-300';
-          dateHeading.textContent = `Workout Date: ${workout.date}`;
-
-          const exerciseContainer = document.createElement('div');
-          exerciseContainer.className = 'mt-4 grid gap-4 lg:grid-cols-2';
-
-          workout.exercises.forEach(exercise => {
-            const card = document.createElement('div');
-            card.className = 'rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-200';
-            card.innerHTML = `
-              <h4 class="text-base font-semibold text-white">${exercise.name}</h4>
-              <p>Reps: ${exercise.repetitions}</p>
-              <p>Weight: ${exercise.weight} lbs</p>
-              <p>Intensity: ${exercise.intensity}</p>
-            `;
-            exerciseContainer.appendChild(card);
-          });
-
-          workoutCard.appendChild(dateHeading);
-          workoutCard.appendChild(exerciseContainer);
-          container.appendChild(workoutCard);
-        });
+        allWorkouts = data;
+        renderDay();
       })
-      .catch(error => {
-        console.error('Failed to fetch workouts:', error);
-        document.getElementById('workoutList').innerHTML = '<div class="rounded-3xl border border-red-400 bg-red-500/10 p-4 text-sm text-red-200">Error loading workouts.</div>';
+      .catch(err => {
+        console.error('Failed to fetch workouts:', err);
+        document.getElementById('workoutList').innerHTML =
+          '<div class="rounded-3xl border border-red-400 bg-red-500/10 p-4 text-sm text-red-200">Error loading workouts.</div>';
       });
   </script>
 </body>
