@@ -86,28 +86,7 @@ else:
         connect_args=connect_args,
     )
 
-DATABASE_URL_OBJECT = _normalize_database_url(
-    os.getenv("DATABASE_URL", "sqlite:///users.db"))
-DATABASE_URL = str(DATABASE_URL_OBJECT)
-DATABASE_BACKEND = DATABASE_URL_OBJECT.get_backend_name()
-
-connect_args = {}
-if DATABASE_BACKEND == "postgresql":
-    sslmode = os.getenv("DATABASE_SSLMODE", "require")
-    connect_args["sslmode"] = sslmode
-
-engine = create_engine(
-    DATABASE_URL,
-    echo=False,
-    future=True,
-    pool_pre_ping=True,
-    connect_args=connect_args,
-)
-
-logger.info(
-    "Database configured as %s",
-    DATABASE_URL_OBJECT.render_as_string(hide_password=True),
-)
+logger.info("Database backend: %s", DATABASE_BACKEND)
 
 SessionLocal = sessionmaker(
     autocommit=False, autoflush=False, bind=engine, expire_on_commit=False)
